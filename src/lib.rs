@@ -1,13 +1,15 @@
+extern crate atomicwrites;
 extern crate byteorder;
 #[macro_use]
 extern crate log;
 extern crate serde;
 extern crate serde_cbor;
 
+use atomicwrites::{AtomicFile, AllowOverwrite};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, Read, Write};
+use std::io::{self, BufWriter, Read, Write};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
@@ -60,7 +62,6 @@ impl<S: Acidic> Journal<S> {
         let buffer = serde_cbor::to_vec(event)?;
         self.file.write_u64::<BigEndian>(buffer.len() as u64)?;
         self.file.write_all(&buffer)?;
-        self.file.flush()?;
         self.file.sync_data()?;
         Ok(())
     }
@@ -91,12 +92,19 @@ impl<S: Acidic + Default> State<S> {
 impl<S: Acidic> State<S> {
     fn checkpoint(&self) -> serde_cbor::Result<()> {
         info!("writing state to {:?}", self.path);
-        // FIXME: make this atomic
-        let buffer = serde_cbor::to_vec(&self.state)?;
-        let mut file = OpenOptions::new().write(true).truncate(true).create(true).open(&self.path)?;
-        file.write_all(&buffer)?;
-        file.flush()?;
-        file.sync_all()?;
+        let afile = AtomicFile::new(&self.path, AllowOverwrite);
+        let mut err = Ok(());
+        afile.write(|file| {
+            let mut writer = BufWriter::new(file);
+            // We can't return serde_cbor errors from this callback directly
+            if let Err(e) = serde_cbor::ser::to_writer(&mut writer, &self.state) {
+                err = Err(e);
+                return Ok(());
+            }
+            writer.flush()?;
+            Ok(())
+        })?;
+        err?;
         info!("finished writing state");
         Ok(())
     }
