@@ -93,18 +93,12 @@ impl<S: Acidic> State<S> {
     fn checkpoint(&self) -> serde_cbor::Result<()> {
         info!("writing state to {:?}", self.path);
         let afile = AtomicFile::new(&self.path, AllowOverwrite);
-        let mut err = Ok(());
-        afile.write(|file| {
+        afile.write::<_, serde_cbor::Error, _>(|file| {
             let mut writer = BufWriter::new(file);
-            // We can't return serde_cbor errors from this callback directly
-            if let Err(e) = serde_cbor::ser::to_writer(&mut writer, &self.state) {
-                err = Err(e);
-                return Ok(());
-            }
+            serde_cbor::ser::to_writer(&mut writer, &self.state)?;
             writer.flush()?;
             Ok(())
         })?;
-        err?;
         info!("finished writing state");
         Ok(())
     }
