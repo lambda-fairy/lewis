@@ -1,0 +1,14 @@
+[package]
+name = "lewis"
+version = "0.1.0"
+authors = ["Chris Wong <lambda.fairy@gmail.com>"]
+
+[dependencies]
+byteorder = "*"
+log = "*"
+serde = "*"
+serde_cbor = "*"
+
+[dev-dependencies]
+serde_derive = "*"
+tempdir = "*"
