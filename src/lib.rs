@@ -15,6 +15,8 @@ use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 
+pub use serde_cbor::{Error, Result};
+
 pub trait Acidic: Send + Sync + Deserialize + Serialize {
     type QueryEvent: Deserialize + Serialize;
     type QueryOutput: Deserialize + Serialize;
@@ -31,7 +33,7 @@ struct Journal<S> {
 }
 
 impl<S: Acidic> Journal<S> {
-    fn open<P: AsRef<Path>>(root: P, state: &mut S) -> serde_cbor::Result<Journal<S>> {
+    fn open<P: AsRef<Path>>(root: P, state: &mut S) -> Result<Journal<S>> {
         let path = root.as_ref().join("journal");
         info!("opening journal at {:?}", path);
         let mut file = OpenOptions::new().read(true).append(true).create(true).open(path)?;
@@ -58,7 +60,7 @@ impl<S: Acidic> Journal<S> {
         Ok(Journal { file: file, _phantom: PhantomData })
     }
 
-    fn record(&mut self, event: &S::UpdateEvent) -> serde_cbor::Result<()> {
+    fn record(&mut self, event: &S::UpdateEvent) -> Result<()> {
         let buffer = serde_cbor::to_vec(event)?;
         self.file.write_u64::<BigEndian>(buffer.len() as u64)?;
         self.file.write_all(&buffer)?;
@@ -73,7 +75,7 @@ struct State<S> {
 }
 
 impl<S: Acidic + Default> State<S> {
-    fn open<P: AsRef<Path>>(root: P) -> serde_cbor::Result<State<S>> {
+    fn open<P: AsRef<Path>>(root: P) -> Result<State<S>> {
         let path = root.as_ref().join("state");
         info!("loading initial state from {:?}", path);
         let state = match File::open(&path) {
@@ -90,10 +92,10 @@ impl<S: Acidic + Default> State<S> {
 }
 
 impl<S: Acidic> State<S> {
-    fn checkpoint(&self) -> serde_cbor::Result<()> {
+    fn checkpoint(&self) -> Result<()> {
         info!("writing state to {:?}", self.path);
         let afile = AtomicFile::new(&self.path, AllowOverwrite);
-        afile.write::<_, serde_cbor::Error, _>(|file| {
+        afile.write::<_, Error, _>(|file| {
             let mut writer = BufWriter::new(file);
             serde_cbor::ser::to_writer(&mut writer, &self.state)?;
             writer.flush()?;
@@ -121,7 +123,7 @@ struct AcidInner<S> {
 }
 
 impl<S: Acidic + Default> Acid<S> {
-    pub fn open<P: AsRef<Path>>(root: P) -> serde_cbor::Result<Acid<S>> {
+    pub fn open<P: AsRef<Path>>(root: P) -> Result<Acid<S>> {
         fs::create_dir_all(&root)?;
         let mut state = State::open(&root)?;
         let journal = Journal::open(&root, &mut *state)?;
@@ -133,18 +135,18 @@ impl<S: Acidic + Default> Acid<S> {
 }
 
 impl<S: Acidic> Acid<S> {
-    pub fn query(&self, event: S::QueryEvent) -> serde_cbor::Result<S::QueryOutput> {
+    pub fn query(&self, event: S::QueryEvent) -> Result<S::QueryOutput> {
         let inner = self.lock.read().unwrap();
         Ok(inner.state.run_query(event))
     }
 
-    pub fn update(&self, event: S::UpdateEvent) -> serde_cbor::Result<S::UpdateOutput> {
+    pub fn update(&self, event: S::UpdateEvent) -> Result<S::UpdateOutput> {
         let mut inner = self.lock.write().unwrap();
         inner.journal.record(&event)?;
         Ok(inner.state.run_update(event))
     }
 
-    pub fn checkpoint(&self) -> serde_cbor::Result<()> {
+    pub fn checkpoint(&self) -> Result<()> {
         self.lock.read().unwrap().state.checkpoint()
     }
 }
