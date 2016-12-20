@@ -60,25 +60,3 @@ pub trait Backend<S: Acidic>: 'static {
     fn update(&self, event: S::UpdateEvent) -> Result<S::UpdateOutput>;
     fn checkpoint(&self) -> Result<()>;
 }
-
-// This macro would have allowed for really pretty invocations, like this:
-//
-//     query!(Ponies, acid.get_pony("Pinkie Pie".into()))
-//
-// Unfortunately, it doesn't work as-is since Rust doesn't resolve enum variants
-// through type aliases (https://github.com/rust-lang/rust/issues/26264). So we
-// leave it commented for now.
-/*
-#[macro_export]
-macro_rules! query {
-    ($ty:ty, $acid:ident . $method:ident ( $($arg:expr),* )) => {
-        match $acid.query(<$ty as $crate::Acidic>::QueryEvent::$method($($arg),*)) {
-            Ok(r) => match r {
-                <$ty as $crate::Acidic>::QueryOutput::$method(r) => r,
-                _ => unreachable!(),
-            },
-            Err(e) => Err(e),
-        }
-    }
-}
-*/

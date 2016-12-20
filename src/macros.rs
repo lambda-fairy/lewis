@@ -286,6 +286,88 @@ macro_rules! __lewis_ext_trait {
         ($($query_events:tt)*)
         ($($update_events:tt)*)
     ) => {
-        // FIXME: implement this
-    }
+        trait $AcidExt {
+            __lewis_ext_trait_fn_signatures! {
+                $self_
+                ($($query_events)*)
+            }
+            __lewis_ext_trait_fn_signatures! {
+                $self_
+                ($($update_events)*)
+            }
+        }
+
+        impl $AcidExt for $crate::Acid<$State> {
+            __lewis_ext_trait_fn_bodies! {
+                $self_
+                query
+                ($QueryEvent $QueryOutput)
+                ($($query_events)*)
+            }
+            __lewis_ext_trait_fn_bodies! {
+                $self_
+                update
+                ($UpdateEvent $UpdateOutput)
+                ($($update_events)*)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! __lewis_ext_trait_fn_signatures {
+    (
+        $self_:ident
+        (
+            $(
+                ($method:ident ($($arg:ident: $Arg:ty),*) ($Out:ty) ($($body:tt)*))
+            )*
+        )
+    ) => {
+        $(
+            fn $method(&$self_, $($arg: $Arg),*) -> $crate::Result<$Out>;
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! __lewis_ext_trait_fn_bodies {
+    // Special case: if there's only one variant, then we must omit the
+    // catch-all pattern
+    (
+        $self_:ident
+        $handle:ident
+        ($Event:ident $Output:ident)
+        (
+            ($method:ident ($($arg:ident: $Arg:ty),*) ($Out:ty) ($($body:tt)*))
+        )
+    ) => {
+        fn $method(&$self_, $($arg: $Arg),*) -> $crate::Result<$Out> {
+            match $self_.$handle($Event::$method($($arg),*)) {
+                Ok($Output::$method(r)) => Ok(r),
+                // Ok(_) => unreachable!(),
+                Err(e) => Err(e)
+            }
+        }
+    };
+    (
+        $self_:ident
+        $handle:ident
+        ($Event:ident $Output:ident)
+        (
+            $(
+                ($method:ident ($($arg:ident: $Arg:ty),*) ($Out:ty) ($($body:tt)*))
+            )*
+        )
+    ) => {
+        $(
+            fn $method(&$self_, $($arg: $Arg),*) -> $crate::Result<$Out> {
+                match $self_.$handle($Event::$method($($arg),*)) {
+                    Ok($Output::$method(r)) => Ok(r),
+                    Ok(_) => unreachable!(),
+                    Err(e) => Err(e)
+                }
+            }
+        )*
+    };
 }

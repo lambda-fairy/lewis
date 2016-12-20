@@ -31,27 +31,6 @@ lewis! {
     }
 }
 
-trait AcidPoniesExt {
-    fn get_pony(&self, name: String) -> lewis::Result<Option<u32>>;
-    fn set_pony(&self, name: String, value: u32) -> lewis::Result<()>;
-}
-
-impl AcidPoniesExt for Acid<Ponies> {
-    fn get_pony(&self, name: String) -> lewis::Result<Option<u32>> {
-        Ok(match self.query(PoniesQueryEvent::get_pony(name))? {
-            PoniesQueryOutput::get_pony(r) => r,
-            // _ => unreachable!()
-        })
-    }
-
-    fn set_pony(&self, name: String, value: u32) -> lewis::Result<()> {
-        Ok(match self.update(PoniesUpdateEvent::set_pony(name, value))? {
-            PoniesUpdateOutput::set_pony(r) => r,
-            // _ => unreachable!()
-        })
-    }
-}
-
 #[test]
 fn smoke() {
     let root = TempDir::new("lewis").unwrap();
