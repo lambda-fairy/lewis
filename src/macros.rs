@@ -13,8 +13,7 @@ macro_rules! lewis {
         __lewis_parse! {
             @start
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput $AcidExt)
             ($($body)*)
         }
     };
@@ -26,8 +25,7 @@ macro_rules! __lewis_parse {
     (
         @start
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         (
             // Extract a "self" identifier hygenically
             fn $method:ident(&$self_:ident $($args:tt)*)
@@ -37,8 +35,7 @@ macro_rules! __lewis_parse {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             $self_
             ()
             ()
@@ -51,8 +48,7 @@ macro_rules! __lewis_parse {
     (
         @start
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         (
             // Extract a "self" identifier hygenically
             fn $method:ident(&mut $self_:ident $($args:tt)*)
@@ -62,8 +58,7 @@ macro_rules! __lewis_parse {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             $self_
             ()
             ()
@@ -76,15 +71,13 @@ macro_rules! __lewis_parse {
     (
         @start
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         ()
     ) => {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             // If the user didn't list any methods, then we don't have any
             // "self" idents to use. So we make up our own.
             self
@@ -97,8 +90,7 @@ macro_rules! __lewis_parse {
     (
         @parse
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         $self_:ident
         ($($query_events:tt)*)
         ($($update_events:tt)*)
@@ -112,8 +104,7 @@ macro_rules! __lewis_parse {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             $self_
             (
                 $($query_events)*
@@ -127,8 +118,7 @@ macro_rules! __lewis_parse {
     (
         @parse
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         $self_:ident
         ($($query_events:tt)*)
         ($($update_events:tt)*)
@@ -142,8 +132,7 @@ macro_rules! __lewis_parse {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             $self_
             (
                 $($query_events)*
@@ -157,8 +146,7 @@ macro_rules! __lewis_parse {
     (
         @parse
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         $self_:ident
         ($($query_events:tt)*)
         ($($update_events:tt)*)
@@ -172,8 +160,7 @@ macro_rules! __lewis_parse {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             $self_
             ($($query_events)*)
             (
@@ -187,8 +174,7 @@ macro_rules! __lewis_parse {
     (
         @parse
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($($types:ident)*)
         $self_:ident
         ($($query_events:tt)*)
         ($($update_events:tt)*)
@@ -202,8 +188,7 @@ macro_rules! __lewis_parse {
         __lewis_parse! {
             @parse
             $State
-            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
-            $AcidExt
+            ($($types)*)
             $self_
             ($($query_events)*)
             (
@@ -217,8 +202,7 @@ macro_rules! __lewis_parse {
     (
         @parse
         $State:ident
-        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
-        $AcidExt:ident
+        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident $AcidExt:ident)
         $self_:ident
         ($($query_events:tt)*)
         ($($update_events:tt)*)
