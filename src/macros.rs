@@ -123,6 +123,36 @@ macro_rules! __lewis_parse {
             ($($rest)*)
         }
     };
+    // Parse `&self` methods that omit their return type
+    (
+        @parse
+        $State:ident
+        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
+        $AcidExt:ident
+        $self_:ident
+        ($($query_events:tt)*)
+        ($($update_events:tt)*)
+        (
+            fn $method:ident(&self, $($arg:ident: $Arg:ty),*) {
+                $($body:tt)*
+            }
+            $($rest:tt)*
+        )
+    ) => {
+        __lewis_parse! {
+            @parse
+            $State
+            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
+            $AcidExt
+            $self_
+            (
+                $($query_events)*
+                ($method ($($arg: $Arg),*) (()) ($($body)*))
+            )
+            ($($update_events)*)
+            ($($rest)*)
+        }
+    };
     // Parse `&mut self` methods
     (
         @parse
@@ -149,6 +179,36 @@ macro_rules! __lewis_parse {
             (
                 $($update_events)*
                 ($method ($($arg: $Arg),*) ($Out) ($($body)*))
+            )
+            ($($rest)*)
+        }
+    };
+    // Parse `&mut self` methods that omit their return type
+    (
+        @parse
+        $State:ident
+        ($QueryEvent:ident $QueryOutput:ident $UpdateEvent:ident $UpdateOutput:ident)
+        $AcidExt:ident
+        $self_:ident
+        ($($query_events:tt)*)
+        ($($update_events:tt)*)
+        (
+            fn $method:ident(&mut self, $($arg:ident: $Arg:ty),*) {
+                $($body:tt)*
+            }
+            $($rest:tt)*
+        )
+    ) => {
+        __lewis_parse! {
+            @parse
+            $State
+            ($QueryEvent $QueryOutput $UpdateEvent $UpdateOutput)
+            $AcidExt
+            $self_
+            ($($query_events)*)
+            (
+                $($update_events)*
+                ($method ($($arg: $Arg),*) (()) ($($body)*))
             )
             ($($rest)*)
         }

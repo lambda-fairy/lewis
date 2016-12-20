@@ -25,7 +25,7 @@ lewis! {
         fn get_pony(&self, name: String) -> Option<u32> {
             self.ponies.get(&name).cloned()
         }
-        fn set_pony(&mut self, name: String, value: u32) -> () {
+        fn set_pony(&mut self, name: String, value: u32) {
             self.ponies.insert(name, value);
         }
     }
