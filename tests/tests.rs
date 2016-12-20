@@ -8,8 +8,8 @@ extern crate tempdir;
 #[macro_use]
 extern crate lewis;
 
-use std::collections::HashMap;
 use lewis::Acid;
+use std::collections::HashMap;
 use tempdir::TempDir;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
