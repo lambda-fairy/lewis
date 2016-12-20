@@ -95,7 +95,7 @@ macro_rules! __lewis_parse {
         ($($query_events:tt)*)
         ($($update_events:tt)*)
         (
-            fn $method:ident(&self, $($arg:ident: $Arg:ty),*) -> $Out:ty {
+            fn $method:ident(&self $(, $arg:ident: $Arg:ty)* $(,)*) -> $Out:ty {
                 $($body:tt)*
             }
             $($rest:tt)*
@@ -123,7 +123,7 @@ macro_rules! __lewis_parse {
         ($($query_events:tt)*)
         ($($update_events:tt)*)
         (
-            fn $method:ident(&self, $($arg:ident: $Arg:ty),*) {
+            fn $method:ident(&self $(, $arg:ident: $Arg:ty)* $(,)*) {
                 $($body:tt)*
             }
             $($rest:tt)*
@@ -151,7 +151,7 @@ macro_rules! __lewis_parse {
         ($($query_events:tt)*)
         ($($update_events:tt)*)
         (
-            fn $method:ident(&mut self, $($arg:ident: $Arg:ty),*) -> $Out:ty {
+            fn $method:ident(&mut self $(, $arg:ident: $Arg:ty)* $(,)*) -> $Out:ty {
                 $($body:tt)*
             }
             $($rest:tt)*
@@ -179,7 +179,7 @@ macro_rules! __lewis_parse {
         ($($query_events:tt)*)
         ($($update_events:tt)*)
         (
-            fn $method:ident(&mut self, $($arg:ident: $Arg:ty),*) {
+            fn $method:ident(&mut self $(, $arg:ident: $Arg:ty)* $(,)*) {
                 $($body:tt)*
             }
             $($rest:tt)*
