@@ -17,6 +17,8 @@ use std::sync::{Arc, RwLock};
 
 pub use serde_cbor::{Error, Result};
 
+mod macros;
+
 pub trait Acidic: Send + Sync + Deserialize + Serialize {
     type QueryEvent: Deserialize + Serialize;
     type QueryOutput: Deserialize + Serialize;
